@@ -1,0 +1,39 @@
+from flask import Flask, render_template, request
+from flask_babel import Babel, _
+
+app = Flask(__name__)
+
+# Configuration class for setting language and timezone
+class Config:
+    LANGUAGES = ['en', 'fr']
+    BABEL_DEFAULT_LOCALE = 'en'
+    BABEL_DEFAULT_TIMEZONE = 'UTC'
+
+app.config.from_object(Config)
+
+# Initialize Babel with the app
+babel = Babel(app)
+
+# Localeselector function to determine the best language
+@babel.localeselector
+def get_locale():
+    """
+    This function determines the best locale to use.
+    First checks the 'locale' URL parameter, then checks
+    the user's preferred language in the browser.
+    """
+    # First try to get the locale from URL parameters
+    locale = request.args.get('locale')
+    if locale:
+        return locale
+
+    # Fallback to best match based on accept-languages header
+    return request.accept_languages.best_match(app.config['LANGUAGES'])
+
+# Route definition for rendering home page
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
